@@ -1,4 +1,4 @@
- name: Build VideoFinder APK
+name: Build VideoFinder APK
 
 on:
 workflow_dispatch:
