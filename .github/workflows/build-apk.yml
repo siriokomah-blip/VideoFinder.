@@ -35,8 +35,15 @@ jobs:
 
       - name: Fix Java target
         run: |
-          sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' extracted/VideoFinder/app/build.gradle
-
+          FILE=$(find extracted -type f \( -path '*/app/build.gradle' -o -path '*/app/build.gradle.kts' \) -print -quit)
+          if [ -z "$FILE" ]; then
+            echo "File konfigurasi Gradle aplikasi tidak ditemukan"
+            find extracted -maxdepth 4 -type f
+            exit 1
+          fi
+          echo "Memperbaiki: $FILE"
+          sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' "$FILE"
+          
       - name: Build APK
         working-directory: extracted/VideoFinder
         run: gradle assembleDebug
