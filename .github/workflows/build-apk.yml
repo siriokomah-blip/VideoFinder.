@@ -35,40 +35,33 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Check source ZIP
-        run: |
-          ls -la
-          test -f VideoFinder-Android-Source.zip
-
       - name: Extract project ZIP
         run: unzip VideoFinder-Android-Source.zip -d extracted
 
-      - name: Align Java and Kotlin JVM targets
+      - name: Configure JVM targets
         run: |
           cat > /tmp/align-jvm.gradle <<'EOF'
           allprojects {
               tasks.withType(org.gradle.api.tasks.compile.JavaCompile).configureEach {
-                  sourceCompatibility = "17"
-                  targetCompatibility = "17"
+                  sourceCompatibility = '17'
+                  targetCompatibility = '17'
               }
-              tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-                  kotlinOptions {
-                      jvmTarget = "17"
+              tasks.configureEach { task ->
+                  if (task.name.toLowerCase().contains('kotlin') &&
+                      task.hasProperty('kotlinOptions')) {
+                      task.kotlinOptions.jvmTarget = '17'
                   }
               }
           }
           EOF
 
       - name: Build debug APK
-        shell: bash
         run: |
           SETTINGS_FILE="$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)"
-
           if [ -z "$SETTINGS_FILE" ]; then
-            echo "Gradle settings file not found."
+            echo "Gradle settings file not found"
             exit 1
           fi
-
           PROJECT_DIR="$(dirname "$SETTINGS_FILE")"
           gradle -I /tmp/align-jvm.gradle -p "$PROJECT_DIR" assembleDebug
 
