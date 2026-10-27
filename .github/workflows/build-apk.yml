@@ -33,6 +33,10 @@ jobs:
       - name: Extract project ZIP
         run: unzip VideoFinder-Android-Source.zip -d extracted
 
+      - name: Fix Java target
+        run: |
+          sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' extracted/VideoFinder/app/build.gradle
+
       - name: Build APK
         working-directory: extracted/VideoFinder
         run: gradle assembleDebug
