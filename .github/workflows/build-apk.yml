@@ -50,21 +50,7 @@ jobs:
       - name: Build debug APK
         shell: bash
         run: |
-          SETTINGS_FILE="$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)"
-          if [ -z "$SETTINGS_FILE" ]; then
-            echo "Gradle settings file not found."
-            exit 1
-          fi
-
-          PROJECT_DIR="$(dirname "$SETTINGS_FILE")"
-          if [ ! -f "$PROJECT_DIR/gradlew" ]; then
-            echo "gradlew not found in $PROJECT_DIR"
-            exit 1
-          fi
-
-          chmod +x "$PROJECT_DIR/gradlew"
-          cd "$PROJECT_DIR"
-          ./gradlew assembleDebug
+          gradle -p extracted/VideoFinder assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
