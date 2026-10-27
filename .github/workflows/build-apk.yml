@@ -15,24 +15,24 @@ runs-on: ubuntu-latest
 steps:
 - uses: actions/checkout@v4
 
-- uses: actions/setup-java@v4
+  - uses: actions/setup-java@v4
     with:
       distribution: temurin
       java-version: '17'
 
-- uses: android-actions/setup-android@v4
+  - uses: android-actions/setup-android@v4
 
-- name: Install Android SDK
+  - name: Install Android SDK
     run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-- uses: gradle/actions/setup-gradle@v4
+  - uses: gradle/actions/setup-gradle@v4
     with:
       gradle-version: '8.9'
 
-- name: Extract project ZIP
+  - name: Extract project ZIP
     run: unzip VideoFinder-Android-Source.zip -d extracted
 
-- name: Fix Java and Kotlin JVM targets
+  - name: Fix Java and Kotlin JVM targets
     run: |
       python3 - <<'PY'
       from pathlib import Path
@@ -79,11 +79,11 @@ steps:
       """)
       PY
 
-- name: Build APK
+  - name: Build APK
     working-directory: extracted/VideoFinder
     run: gradle -I ../align-jvm.gradle assembleDebug
 
-- uses: actions/upload-artifact@v4
+  - uses: actions/upload-artifact@v4
     with:
       name: VideoFinder-debug-apk
       path: extracted/VideoFinder/app/build/outputs/apk/debug/app-debug.apk
