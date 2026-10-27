@@ -1,66 +1,74 @@
+
 name: Build VideoFinder APK
 
 on:
-workflow_dispatch:
-push:
-branches:
-- main
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
-contents: read
+  contents: read
 
 jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout repository
-uses: actions/checkout@v4
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Set up Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '17'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-  - name: Set up Android SDK
-    uses: android-actions/setup-android@v4
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
 
-  - name: Install Android SDK packages
-    run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-  - name: Set up Gradle
-    uses: gradle/actions/setup-gradle@v4
-    with:
-      gradle-version: '8.9'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
 
-  - name: Check source ZIP
-    run: |
-      ls -la
-      test -f VideoFinder-Android-Source.zip
+      - name: Check source ZIP
+        run: |
+          ls -la
+          test -f VideoFinder-Android-Source.zip
 
-  - name: Extract project ZIP
-    run: unzip VideoFinder-Android-Source.zip -d extracted
+      - name: Extract project ZIP
+        run: unzip VideoFinder-Android-Source.zip -d extracted
 
-  - name: Locate Gradle project
-    run: |
-      find extracted -name settings.gradle -o -name settings.gradle.kts
-      find extracted -name build.gradle -o -name build.gradle.kts
+      - name: Locate Gradle project
+        run: |
+          find extracted \( -name settings.gradle -o -name settings.gradle.kts \)
+          find extracted \( -name build.gradle -o -name build.gradle.kts \)
 
-  - name: Build debug APK
-    shell: bash
-    run: |
-      PROJECT_DIR="$(dirname "$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)")"
-      if [ -z "$PROJECT_DIR" ] || [ ! -f "$PROJECT_DIR/gradlew" ]; then
-        echo "Gradle project or gradlew not found."
-        exit 1
-      fi
-      chmod +x "$PROJECT_DIR/gradlew"
-      cd "$PROJECT_DIR"
-      ./gradlew assembleDebug
+      - name: Build debug APK
+        shell: bash
+        run: |
+          SETTINGS_FILE="$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)"
+          if [ -z "$SETTINGS_FILE" ]; then
+            echo "Gradle settings file not found."
+            exit 1
+          fi
 
-  - name: Upload APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: VideoFinder-debug-apk
-      path: extracted/**/build/outputs/apk/debug/*.apk
-      if-no-files-found: error
+          PROJECT_DIR="$(dirname "$SETTINGS_FILE")"
+          if [ ! -f "$PROJECT_DIR/gradlew" ]; then
+            echo "gradlew not found in $PROJECT_DIR"
+            exit 1
+          fi
+
+          chmod +x "$PROJECT_DIR/gradlew"
+          cd "$PROJECT_DIR"
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VideoFinder-debug-apk
+          path: extracted/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
